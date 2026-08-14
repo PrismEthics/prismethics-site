@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Manrope } from "next/font/google";
+import { headers } from "next/headers";
 import "./globals.css";
 
 const display = Cormorant_Garamond({
@@ -13,31 +14,53 @@ const sans = Manrope({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: "PrismEthics — Thinking that carries forward",
-    template: "%s · PrismEthics",
-  },
-  description:
-    "A structured workbench for consequential thinking, durable continuity, and human-directed judgment.",
-  openGraph: {
-    title: "PrismEthics — Thinking that carries forward",
+const productionHosts = new Set([
+  "prismethics.com",
+  "www.prismethics.com",
+  "prismethics-workbench.eamonmontgomery.chatgpt.site",
+]);
+
+function metadataOrigin(hostHeader: string | null) {
+  const requestedHost = hostHeader?.split(",")[0]?.trim().toLowerCase();
+  const isLocal = requestedHost === "localhost:4174" || requestedHost === "localhost:3000";
+  const host = isLocal || (requestedHost && productionHosts.has(requestedHost))
+    ? requestedHost
+    : "prismethics.com";
+
+  return `${isLocal ? "http" : "https"}://${host}`;
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const requestHeaders = await headers();
+  const host = requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host");
+  const socialImage = new URL("/og-prismethics-v3.png", metadataOrigin(host)).toString();
+
+  return {
+    title: {
+      default: "PrismEthics — Thinking that carries forward",
+      template: "%s · PrismEthics",
+    },
     description:
-      "Structure consequential work, preserve what changed, and return without losing the thread.",
-    type: "website",
-    images: [{ url: "/og-prismethics-v3.png", width: 1680, height: 945, alt: "A white beam revealing a spectrum as it passes through a transparent prism" }],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "PrismEthics — Thinking that carries forward",
-    description: "A structured workbench for consequential thinking and durable continuity.",
-    images: ["/og-prismethics-v3.png"],
-  },
-  icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
-  },
-};
+      "A structured workbench for consequential thinking, durable continuity, and human-directed judgment.",
+    openGraph: {
+      title: "PrismEthics — Thinking that carries forward",
+      description:
+        "Structure consequential work, preserve what changed, and return without losing the thread.",
+      type: "website",
+      images: [{ url: socialImage, width: 1680, height: 945, alt: "A white beam revealing a spectrum as it passes through a transparent prism" }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "PrismEthics — Thinking that carries forward",
+      description: "A structured workbench for consequential thinking and durable continuity.",
+      images: [socialImage],
+    },
+    icons: {
+      icon: "/favicon.svg",
+      shortcut: "/favicon.svg",
+    },
+  };
+}
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
