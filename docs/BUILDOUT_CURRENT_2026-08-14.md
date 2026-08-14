@@ -1,6 +1,6 @@
 # PrismEthics Product Buildout — Current State
 
-Date: 2026-08-14  
+Date: 2026-08-14
 Purpose: the smallest accurate map from the admitted runtime proof to a public, usable product surface.
 
 ## Governing product rule
