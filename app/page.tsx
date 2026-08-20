@@ -29,9 +29,9 @@ export default function Home() {
         <div className="nav-links">
           <a href="#method">How it works</a>
           <a href="#trust">Trust</a>
-          <Link className="button button-small button-quiet" href="/workbench">
+          <a className="button button-small button-quiet" href="/workbench">
             Open Workbench
-          </Link>
+          </a>
         </div>
       </nav>
 
@@ -44,12 +44,16 @@ export default function Home() {
             and return without losing the thread.
           </p>
           <div className="hero-actions">
-            <Link className="button button-primary" href="/workbench">
-              Begin a Work Object <span aria-hidden="true">↗</span>
-            </Link>
+            <a className="button button-primary" href="/workbench">
+              Begin with one thought <span aria-hidden="true">↗</span>
+            </a>
             <a className="text-link" href="#method">See the method <span aria-hidden="true">↓</span></a>
           </div>
-          <p className="preview-note">Private on this device in the current preview. No account required.</p>
+          <p className="preview-note">
+            This pilot begins with one Thought Object. It tests how PrismEthics preserves, reviews,
+            and carries work forward before any later expansion into research, writing, analysis,
+            and other kinds of work. Those later capabilities are not active here.
+          </p>
         </div>
 
         <div className="hero-object" aria-label="An abstract prism representing preserved perspective">
@@ -69,10 +73,10 @@ export default function Home() {
 
       <section className="signal-strip" aria-label="Product principles">
         <div className="shell signal-inner">
-          <span>Visible reasoning</span><i />
-          <span>Human authority</span><i />
-          <span>Continuity by design</span><i />
-          <span>Correctable memory</span>
+          <span>See how the thought is taking shape</span><i />
+          <span>You decide</span><i />
+          <span>A clear way back in</span><i />
+          <span>Nothing is beyond revision</span>
         </div>
       </section>
 
@@ -94,13 +98,13 @@ export default function Home() {
 
       <section className="continuity shell">
         <div className="continuity-panel">
-          <p className="eyebrow light"><span /> A durable handoff</p>
+          <p className="eyebrow light"><span /> A clear place to return</p>
           <blockquote>“Next time, begin from what changed—not from a transcript of everything said.”</blockquote>
           <p>
             PrismEthics treats continuity as something you can inspect and correct. The work stays
             organized around your purpose, your uncertainty, and your next responsible move.
           </p>
-          <Link className="text-link light" href="/workbench">Try the continuity loop <span aria-hidden="true">→</span></Link>
+          <a className="text-link light" href="/workbench">Try the continuity loop <span aria-hidden="true">→</span></a>
         </div>
         <div className="trace" aria-hidden="true">
           <div className="trace-node"><span>Question</span><b>What is actually at stake?</b></div>
@@ -113,19 +117,19 @@ export default function Home() {
 
       <section className="trust shell" id="trust">
         <div>
-          <p className="eyebrow"><span /> Trust boundary</p>
+          <p className="eyebrow"><span /> What this preview does—and does not do</p>
           <h2>An honest first surface.</h2>
         </div>
         <div className="trust-copy">
           <p>
-            This preview is a useful, device-local Workbench. It does not claim cloud sync,
-            accounts, or live model assistance. Those arrive only when the governed runtime is
-            connected and its evidence is ready.
+            Before anyone begins a pilot, it should say plainly where their writing will be stored
+            and whether an outside AI service will be used. Whatever the setup, a suggestion stays
+            a proposal until the person reviews and accepts the exact change.
           </p>
           <div className="trust-facts">
-            <span><b>Now</b>Local structured work</span>
-            <span><b>Next</b>Governed model assistance</span>
-            <span><b>Always</b>You can inspect and revise</span>
+            <span><b>Before you begin</b>See where your writing is stored</span>
+            <span><b>For each suggestion</b>See whether an outside AI service was used</span>
+            <span><b>Always</b>You inspect and decide</span>
           </div>
         </div>
       </section>
@@ -133,12 +137,12 @@ export default function Home() {
       <section className="final-cta shell">
         <p className="eyebrow light"><span /> Begin with what matters</p>
         <h2>Give the work somewhere<br />worth returning to.</h2>
-        <Link className="button button-primary" href="/workbench">Open the Workbench <span aria-hidden="true">↗</span></Link>
+        <a className="button button-primary" href="/workbench">Open the Workbench <span aria-hidden="true">↗</span></a>
       </section>
 
       <footer className="site-footer shell">
         <Link className="wordmark" href="/"><span className="mark" aria-hidden="true" />PrismEthics</Link>
-        <p>Structured reasoning that carries forward.</p>
+        <p>Thinking that carries forward.</p>
         <p>Preview · 2026</p>
       </footer>
     </main>
