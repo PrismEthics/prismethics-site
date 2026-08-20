@@ -41,18 +41,18 @@ export async function generateMetadata(): Promise<Metadata> {
       template: "%s · PrismEthics",
     },
     description:
-      "A structured workbench for consequential thinking, durable continuity, and human-directed judgment.",
+      "A place to work through difficult questions, keep what changed, and return without losing the thread.",
     openGraph: {
       title: "PrismEthics — Thinking that carries forward",
       description:
-        "Structure consequential work, preserve what changed, and return without losing the thread.",
+        "Work through difficult questions, keep what changed, and return without losing the thread.",
       type: "website",
       images: [{ url: socialImage, width: 1680, height: 945, alt: "A white beam revealing a spectrum as it passes through a transparent prism" }],
     },
     twitter: {
       card: "summary_large_image",
       title: "PrismEthics — Thinking that carries forward",
-      description: "A structured workbench for consequential thinking and durable continuity.",
+      description: "A place to work through difficult questions and return without losing the thread.",
       images: [socialImage],
     },
     icons: {

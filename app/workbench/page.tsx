@@ -68,10 +68,61 @@ async function bridgeRequest(path: string, init?: RequestInit): Promise<Snapshot
 
 function shortHash(value: string) { return `${value.slice(0, 10)}…${value.slice(-8)}`; }
 
+function plainRecordLabel(value: string) {
+  return ({
+    HUMAN: "From you",
+    HUMAN_ORIGIN: "Your starting point",
+    HUMAN_INTUITION: "Starting intuition",
+    MODEL_SUGGESTION: "Suggested by the writing helper",
+    HUMAN_ENDORSED: "Approved by you",
+    NOT_ENDORSED: "Not accepted",
+    HUMAN_COMBINATION: "Combined by you",
+    HUMAN_EDIT: "Edited by you",
+    CANDIDATE_INTERPRETATION: "Still being considered",
+    SUPERSEDED: "Earlier view",
+    OPEN: "In progress",
+    CLOSED: "Closed",
+    HUMAN_STATEMENT: "Something you said",
+  } as Record<string, string>)[value] ?? value.replaceAll("_", " ").toLowerCase();
+}
+
+function decisionLabel(value: string) {
+  return ({
+    CONFIRM_FRAME_SET: "You confirmed these viewpoints",
+    HOLD: "You chose to pause",
+    REJECT_ALL: "You rejected every option",
+    ACCEPT_ONE: "You accepted one option",
+    COMBINE: "You combined options in your own words",
+    EDIT: "You used your edited wording",
+    REQUEST_ANOTHER_FRAME: "You asked for another viewpoint",
+    ADD_MISSING_READING: "You added a missing reading",
+  } as Record<string, string>)[value] ?? plainRecordLabel(value);
+}
+
+function plainError(error: unknown) {
+  const message = error instanceof Error ? error.message : "";
+  if (/corrupt|hash|integrity|reconstruct/i.test(message)) return "The saved thought failed its integrity check. Nothing was changed. Stop here and inspect the technical record.";
+  if (/selected option|accept one requires/i.test(message)) return "Choose one of the options shown.";
+  if (/combine requires/i.test(message)) return "Choose at least two options to combine.";
+  if (/check.?ins|durable mutation/i.test(message)) return "Before saving a change, review where the readings differ and confirm the exact wording.";
+  return "That could not be completed. Nothing in the saved thought was changed.";
+}
+
+function isProviderFree(proposal: Proposal) {
+  return proposal.provider.provider === "deterministic-provider-free"
+    && proposal.provider.request_count === 0
+    && proposal.provider.cost_usd === 0;
+}
+
+function proposalBoundary(proposal: Proposal) {
+  if (isProviderFree(proposal)) return "This proposal was made without an outside AI service. You still decide whether to use it.";
+  return `This proposal records ${proposal.provider.request_count} outside AI ${proposal.provider.request_count === 1 ? "call" : "calls"} through ${proposal.provider.provider}. Review the provider, model, and cost below.`;
+}
+
 export default function Workbench() {
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
-  const [title, setTitle] = useState("Plurality and precision");
-  const [question, setQuestion] = useState("Can a thought remain plural while becoming more precise?");
+  const [title, setTitle] = useState("");
+  const [question, setQuestion] = useState("");
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   const [exactText, setExactText] = useState("");
   const [missingReading, setMissingReading] = useState("");
@@ -80,20 +131,20 @@ export default function Workbench() {
   const [closing, setClosing] = useState(false);
   const [closeFields, setCloseFields] = useState({ whatShifted: "", whatRemainsLive: "", firstNextMove: "", carryForward: "" });
   const [closeConfirmed, setCloseConfirmed] = useState(false);
-  const [notice, setNotice] = useState("Connecting to the local governed runtime…");
+  const [notice, setNotice] = useState("Opening the Workbench…");
   const [busy, setBusy] = useState(false);
   const [offline, setOffline] = useState(false);
 
   const refresh = useCallback(async () => {
     try {
       const next = await bridgeRequest("/thought-object");
-      setSnapshot(next); setOffline(false); setNotice("Local v0.3 runtime connected.");
+      setSnapshot(next); setOffline(false); setNotice("Ready.");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Local runtime unavailable.";
+      const message = error instanceof Error ? error.message : "Workbench unavailable.";
       if (message === "no Thought Object exists") {
-        setSnapshot(null); setOffline(false); setNotice("Runtime connected. Begin one Thought Object.");
+        setSnapshot(null); setOffline(false); setNotice("Ready. Begin with one thought.");
       } else {
-        setOffline(true); setNotice("Start the localhost bridge to use the governed Workbench.");
+        setOffline(true); setNotice("The Workbench is not connected. Please ask the pilot facilitator to reconnect it.");
       }
     }
   }, []);
@@ -106,27 +157,27 @@ export default function Workbench() {
   async function act(label: string, action: () => Promise<Snapshot>) {
     setBusy(true); setNotice(label);
     try { const next = await action(); setSnapshot(next); setOffline(false); setNotice(label.replace("…", ".")); }
-    catch (error) { setNotice(error instanceof Error ? error.message : "The local operation failed."); }
+    catch (error) { setNotice(plainError(error)); }
     finally { setBusy(false); }
   }
 
   function createObject(event: FormEvent) {
     event.preventDefault();
     if (!title.trim() || !question.trim()) return;
-    void act("Opening governed Thought Object…", () => bridgeRequest("/thought-object", {
+    void act("Opening this thought…", () => bridgeRequest("/thought-object", {
       method: "POST", body: JSON.stringify({ title: title.trim(), question: question.trim() }),
     }));
   }
 
   function reviewFrames(action: "CONFIRM_FRAME_SET" | "REQUEST_ANOTHER_FRAME" | "ADD_MISSING_READING" | "HOLD") {
-    void act(action === "CONFIRM_FRAME_SET" ? "Confirming the review lenses…" : "Recording the Human frame response…", () => bridgeRequest("/thought-object/frame-set-decisions", {
+    void act(action === "CONFIRM_FRAME_SET" ? "Using these viewpoints…" : "Saving your response…", () => bridgeRequest("/thought-object/frame-set-decisions", {
       method: "POST",
       body: JSON.stringify({ action, humanInput: ["REQUEST_ANOTHER_FRAME", "ADD_MISSING_READING"].includes(action) ? missingReading.trim() : undefined }),
     }));
   }
 
   function decide(action: "ACCEPT_ONE" | "COMBINE" | "EDIT" | "REJECT_ALL" | "REQUEST_ANOTHER_FRAME" | "ADD_MISSING_READING" | "HOLD") {
-    void act("Recording the Human decision…", () => bridgeRequest("/thought-object/decisions", {
+    void act("Saving your decision…", () => bridgeRequest("/thought-object/decisions", {
       method: "POST",
       body: JSON.stringify({
         action,
@@ -144,7 +195,7 @@ export default function Workbench() {
 
   function submitClose(event: FormEvent) {
     event.preventDefault();
-    void act("Closing with Human-confirmed continuity…", () => bridgeRequest("/thought-object/close", {
+    void act("Saving your closing note…", () => bridgeRequest("/thought-object/close", {
       method: "POST", body: JSON.stringify({ ...closeFields, humanConfirmed: closeConfirmed }),
     }));
   }
@@ -160,19 +211,19 @@ export default function Workbench() {
       if (!response.ok) throw new Error("Export failed.");
       const blob = await response.blob(); const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a"); anchor.href = url; anchor.download = "thought-object-export.json"; anchor.click();
-      URL.revokeObjectURL(url); setNotice("Governed export downloaded.");
-    } catch (error) { setNotice(error instanceof Error ? error.message : "Export failed."); }
+      URL.revokeObjectURL(url); setNotice("A copy was downloaded.");
+    } catch (error) { setNotice(plainError(error)); }
     finally { setBusy(false); }
   }
 
   async function deleteObject() {
-    if (!snapshot?.state || !window.confirm(`Delete “${snapshot.state.title}” and its local event stream?`)) return;
+    if (!snapshot?.state || !window.confirm(`Delete “${snapshot.state.title}” and its saved history?`)) return;
     setBusy(true);
     try {
       const response = await fetch(`${BRIDGE}/thought-object`, { method: "DELETE" });
       if (!response.ok) throw new Error("Delete failed.");
-      setSnapshot(null); setNotice("Local Thought Object deleted.");
-    } catch (error) { setNotice(error instanceof Error ? error.message : "Delete failed."); }
+      setSnapshot(null); setNotice("The saved copy was deleted.");
+    } catch (error) { setNotice(plainError(error)); }
     finally { setBusy(false); }
   }
 
@@ -182,30 +233,32 @@ export default function Workbench() {
     <main className="workbench-page governed-workbench">
       <nav className="site-nav workbench-nav shell" aria-label="Workbench navigation">
         <Link className="wordmark" href="/"><span className="mark" aria-hidden="true" />PrismEthics</Link>
-        <span className={`preview-pill ${offline ? "offline" : ""}`}>{offline ? "Bridge offline" : "Local v0.3 bridge"}</span>
-        <Link className="text-link light" href="/">About the method <span aria-hidden="true">↗</span></Link>
+        <span className={`preview-pill ${offline ? "offline" : ""}`}>{offline ? "Not connected" : state ? "Thought saved" : "Workbench ready"}</span>
+        {/* A full navigation keeps the cross-page method anchor reliable in the local preview. */}
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+        <a className="text-link light" href="/#method">About the method <span aria-hidden="true">↗</span></a>
       </nav>
 
       {!state ? (
         <section className="bridge-start shell">
-          <div><p className="eyebrow"><span /> Thought Object v0.1</p><h1>Give one thought<br />a durable shape.</h1><p>This local pilot keeps claims, evidence, branches, and Human decisions in a verified event stream. The attention view is derived—not canonical truth.</p><div className="bridge-status" role="status" aria-live="polite">{notice}</div></div>
+          <div><p className="eyebrow"><span /> One thought at a time</p><h1>Give one thought<br />a durable shape.</h1><p>This pilot keeps the parts of a developing thought—what you believe, what supports it, the questions still open, and the paths you have not chosen. The main view shows where the thought stands now; it is not a final verdict.</p><div className="bridge-status" role="status" aria-live="polite">{notice}</div></div>
           <form className="bridge-start-form" onSubmit={createObject}>
-            <div className="field-group"><label htmlFor="thought-title">Name this thought</label><input className="text-field" id="thought-title" value={title} onChange={(event) => setTitle(event.target.value)} /></div>
-            <div className="field-group"><label htmlFor="thought-question">Originating question or intuition</label><textarea className="text-area compact" id="thought-question" value={question} onChange={(event) => setQuestion(event.target.value)} /></div>
-            <button className="button button-primary" type="submit" disabled={busy || offline || !title.trim() || !question.trim()}>Open Thought Object <span aria-hidden="true">→</span></button>
-            <p className="form-footnote">One local object only. No provider call, account, federation, or deployment.</p>
+            <div className="field-group"><label htmlFor="thought-title">Name this thought</label><input className="text-field" id="thought-title" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Give this thought a short name" /></div>
+            <div className="field-group"><label htmlFor="thought-question">What do you want to think through?</label><p className="field-help" id="thought-question-help">Write a question, tension, or half-formed thought. It does not need to be polished.</p><textarea aria-describedby="thought-question-help" className="text-area compact writing-field" id="thought-question" value={question} onChange={(event) => setQuestion(event.target.value)} placeholder="Start with what is on your mind…" /></div>
+            <button className="button button-primary" type="submit" disabled={busy || offline || !title.trim() || !question.trim()}>Open this thought <span aria-hidden="true">→</span></button>
+            <p className="form-footnote">Before you begin, the pilot should tell you where your writing is stored and whether an outside AI service is used.</p>
           </form>
         </section>
       ) : (
         <div className="thought-shell shell">
           <header className="thought-header">
-            <div><p className="eyebrow"><span /> Derived current attention · v{state.version}</p><h1>{state.title}</h1><p className="thought-question">{state.originating_human_input}</p></div>
-            <div className="runtime-card"><span className="runtime-state">{snapshot.session.status}</span><b>Event head</b><code title={state.event_head}>{shortHash(state.event_head)}</code><small>{state.event_count} events · {state.authorized_event_count} authorized change</small></div>
+            <div><p className="eyebrow"><span /> Where this thought stands now · version {state.version}</p><h1>{state.title}</h1><p className="thought-question">{state.originating_human_input}</p></div>
+            <div className="runtime-card"><span className="runtime-state" title={snapshot.session.status}>{plainRecordLabel(snapshot.session.status)}</span><b>Saved</b><strong>{state.event_count} saved steps</strong><small>{state.authorized_event_count} {state.authorized_event_count === 1 ? "change" : "changes"} approved by you</small><details><summary>Technical record</summary><code title={state.event_head}>{shortHash(state.event_head)}</code></details></div>
           </header>
 
           <div className="thought-actions" aria-label="Thought Object actions">
-            {!proposal && state.authorized_event_count === 0 ? <button className="plain-button primary" disabled={busy} onClick={() => void act("Building provider-free Writer proposal…", () => bridgeRequest("/thought-object/proposals", { method: "POST", body: "{}" }))}>Propose with Writer Core</button> : null}
-            {snapshot.session.status === "OPEN" ? <button className="plain-button" disabled={busy} onClick={() => setClosing((value) => !value)}>Close with continuity</button> : <button className="plain-button" disabled={busy} onClick={() => void act("Resuming from verified state…", () => bridgeRequest("/thought-object/resume", { method: "POST", body: "{}" }))}>Resume</button>}
+            {!proposal && state.authorized_event_count === 0 ? <button className="plain-button primary" disabled={busy} onClick={() => void act("Preparing a writing proposal…", () => bridgeRequest("/thought-object/proposals", { method: "POST", body: "{}" }))}>Ask for a writing proposal</button> : null}
+            {snapshot.session.status === "OPEN" ? <button className="plain-button" disabled={busy} onClick={() => setClosing((value) => !value)}>Prepare to close</button> : <button className="plain-button" disabled={busy} onClick={() => void act("Reopening the saved thought…", () => bridgeRequest("/thought-object/resume", { method: "POST", body: "{}" }))}>Reopen</button>}
             <button className="plain-button" disabled={busy} onClick={() => void exportObject()}>Export</button>
             <button className="plain-button danger" disabled={busy} onClick={() => void deleteObject()}>Delete</button>
             <span className="bridge-status" role="status" aria-live="polite">{notice}</span>
@@ -213,50 +266,51 @@ export default function Workbench() {
 
           {closing && snapshot.session.status === "OPEN" ? (
             <form className="continuity-close" onSubmit={submitClose}>
-              <div><p className="eyebrow"><span /> Continuity check-in</p><h2>What stays live when attention closes?</h2><p>Closing is a Human-confirmed handoff, not an inferred summary and not restored authority.</p></div>
+              <div><p className="eyebrow"><span /> A clear place to return</p><h2>What should be waiting when you come back?</h2><p>Write, in your own words, where the thought now stands. Nothing is inferred for you, and reopening it later does not give the system permission to change it.</p></div>
               <div className="continuity-close-fields">
-                {([ ["whatShifted", "What shifted"], ["whatRemainsLive", "What remains live"], ["firstNextMove", "First next move"], ["carryForward", "Carry forward unchanged"] ] as const).map(([key, label]) => <label key={key}>{label}<textarea className="text-area compact" value={closeFields[key]} onChange={(event) => setCloseFields({ ...closeFields, [key]: event.target.value })} /></label>)}
-                <label className="check-line"><input type="checkbox" checked={closeConfirmed} onChange={(event) => setCloseConfirmed(event.target.checked)} /> I confirm this continuity handoff.</label>
-                <button className="plain-button primary" type="submit" disabled={busy || !closeConfirmed || Object.values(closeFields).some((value) => !value.trim())}>Close this continuity</button>
+                {([ ["whatShifted", "What changed"], ["whatRemainsLive", "What is still open"], ["firstNextMove", "First next step"], ["carryForward", "Keep unchanged"] ] as const).map(([key, label]) => <label key={key}>{label}<textarea className="text-area compact" value={closeFields[key]} onChange={(event) => setCloseFields({ ...closeFields, [key]: event.target.value })} /></label>)}
+                <label className="check-line"><input type="checkbox" checked={closeConfirmed} onChange={(event) => setCloseConfirmed(event.target.checked)} /> This is the account I want to carry forward.</label>
+                <button className="plain-button primary" type="submit" disabled={busy || !closeConfirmed || Object.values(closeFields).some((value) => !value.trim())}>Save and close</button>
               </div>
             </form>
           ) : null}
 
           <section className="attention-grid" aria-label="Thought Object current attention">
-            <article className="attention-panel claims-panel"><div className="panel-heading"><span>Claims</span><small>typed + attributable</small></div>{state.claims.map((claim, index) => <div className="claim-row" key={claim.claim_id ?? claim.change_id ?? index}><p>{claim.text}</p><div className="tag-row"><span>{claim.origin}</span><span>{claim.endorsement}</span>{claim.epistemic_status ? <span>{claim.epistemic_status}</span> : null}</div></div>)}</article>
-            <article className="attention-panel"><div className="panel-heading"><span>Evidence</span><small>{state.evidence.length} record</small></div>{state.evidence.map((item) => <div className="evidence-row" key={item.evidence_id}><b>{item.kind}</b><p>{item.description}</p><code>{item.source_ref}</code></div>)}</article>
-            <article className="attention-panel branches-panel"><div className="panel-heading"><span>Preserved branches</span><small>not silently merged</small></div>{Object.values(state.branches).map((branch) => <div className="branch-row" key={branch.branch_id}><b>{branch.branch_id.replace("branch:", "")}</b><p>{branch.interpretation}</p><span>{branch.epistemic_status}</span></div>)}</article>
-            <article className="attention-panel"><div className="panel-heading"><span>Open questions</span><small>remain live</small></div><ol className="question-list">{state.unresolved_questions.map((item) => <li key={item}>{item}</li>)}</ol><div className="superseded-block"><b>Recoverable superseded interpretation</b>{state.interpretations.map((item) => <p key={item.interpretation_id}>{item.text} <span>{item.status} → {item.superseded_by}</span></p>)}</div></article>
+            <article className="attention-panel claims-panel"><div className="panel-heading"><span>What the thought says</span><small>source and status kept clear</small></div>{state.claims.map((claim, index) => <div className="claim-row" key={claim.claim_id ?? claim.change_id ?? index}><p>{claim.text}</p><div className="tag-row"><span title={claim.origin}>{plainRecordLabel(claim.origin)}</span><span title={claim.endorsement}>{plainRecordLabel(claim.endorsement)}</span>{claim.epistemic_status ? <span title={claim.epistemic_status}>{plainRecordLabel(claim.epistemic_status)}</span> : null}</div></div>)}</article>
+            <article className="attention-panel"><div className="panel-heading"><span>What supports it</span><small>{state.evidence.length} {state.evidence.length === 1 ? "record" : "records"}</small></div>{state.evidence.map((item) => <div className="evidence-row" key={item.evidence_id}><b>{plainRecordLabel(item.kind)}</b><p>{item.description}</p><details><summary>Source record</summary><code>{item.source_ref}</code></details></div>)}</article>
+            <article className="attention-panel branches-panel"><div className="panel-heading"><span>Different readings still in view</span><small>kept separate</small></div>{Object.values(state.branches).map((branch) => <div className="branch-row" key={branch.branch_id}><b>{branch.branch_id.replace("branch:", "")}</b><p>{branch.interpretation}</p><span title={branch.epistemic_status}>{plainRecordLabel(branch.epistemic_status)}</span></div>)}</article>
+            <article className="attention-panel"><div className="panel-heading"><span>Questions still open</span><small>kept in view</small></div><ol className="question-list">{state.unresolved_questions.map((item) => <li key={item}>{item}</li>)}</ol><div className="superseded-block"><b>Earlier reading, kept for context</b>{state.interpretations.map((item) => <p key={item.interpretation_id}>{item.text} <span title={`${item.status} → ${item.superseded_by}`}>{plainRecordLabel(item.status)}</span></p>)}</div></article>
           </section>
 
-          {proposal && !packet ? (
+          {proposal && !packet && state.authorized_event_count === 0 ? (
             <section className="frame-checkin" aria-label="Frame selection check-in">
-              <div><p className="eyebrow light"><span /> Before these lenses shape the review</p><h2>{proposal.frame_set_proposal.selection_question}</h2><p>{proposal.frame_set_proposal.selection_rationale}</p></div>
-              <div className="frame-proposals">{proposal.frame_set_proposal.frames.map((frame) => <article key={frame.frame_id}><b>{frame.human_facing_purpose}</b><p>{frame.selection_rationale}</p><details><summary>Evidence identity</summary><code>{frame.frame_id} · {shortHash(frame.contract_hash)}</code></details></article>)}</div>
+              <div><p className="eyebrow light"><span /> Before these viewpoints guide the review</p><h2>{proposal.frame_set_proposal.selection_question}</h2><p>{proposal.frame_set_proposal.selection_rationale}</p></div>
+              <div className="frame-proposals">{proposal.frame_set_proposal.frames.map((frame) => <article key={frame.frame_id}><b>{frame.human_facing_purpose}</b><p>{frame.selection_rationale}</p><details><summary>Technical record</summary><code>{frame.frame_id} · {shortHash(frame.contract_hash)}</code></details></article>)}</div>
               <div className="frame-check-actions"><button className="plain-button accept" disabled={busy} onClick={() => reviewFrames("CONFIRM_FRAME_SET")}>These fit—continue</button><button className="plain-button" disabled={busy} onClick={() => reviewFrames("HOLD")}>Hold here</button></div>
-              <label htmlFor="missing-frame">A lens or reading is missing</label><textarea id="missing-frame" className="text-area compact dark-field" value={missingReading} onChange={(event) => setMissingReading(event.target.value)} placeholder="Name what the proposed set does not yet see…" />
-              <div className="frame-check-actions"><button className="plain-button" disabled={busy || !missingReading.trim()} onClick={() => reviewFrames("REQUEST_ANOTHER_FRAME")}>Request another lens</button><button className="plain-button" disabled={busy || !missingReading.trim()} onClick={() => reviewFrames("ADD_MISSING_READING")}>Add this reading</button></div>
+              <label htmlFor="missing-frame">A viewpoint or reading is missing</label><textarea id="missing-frame" className="text-area compact dark-field" value={missingReading} onChange={(event) => setMissingReading(event.target.value)} placeholder="Name what the proposed set does not yet see…" />
+              <div className="frame-check-actions"><button className="plain-button" disabled={busy || !missingReading.trim()} onClick={() => reviewFrames("REQUEST_ANOTHER_FRAME")}>Ask for another viewpoint</button><button className="plain-button" disabled={busy || !missingReading.trim()} onClick={() => reviewFrames("ADD_MISSING_READING")}>Add this reading</button></div>
             </section>
           ) : null}
 
-          {proposal && packet ? (
+          {proposal && packet && state.authorized_event_count === 0 ? (
             <section className="decision-packet" aria-label="Frame-informed decision packet">
-              <header><p className="eyebrow"><span /> Proposal evidence—not object state</p><h2>{packet.judgment_question}</h2><p>These readings disagree in ways that change the available action. None is selected or authoritative.</p></header>
-              <div className="reading-grid">{packet.frame_readings.map((reading, index) => <article key={reading.frame_id}><span>Reading {index + 1}</span><h3>{reading.reading}</h3><dl><div><dt>What this reveals</dt><dd>{reading.reveals}</dd></div><div><dt>What it may obscure</dt><dd>{reading.may_obscure}</dd></div></dl><small>Procedure recorded · semantic review still pending</small></article>)}</div>
-              <div className="agreement-grid"><article><b>Where the readings agree</b><ul>{packet.frame_agreement.map((item) => <li key={item}>{item}</li>)}</ul></article><article className="disagreement"><b>Where they materially disagree</b><ul>{packet.frame_disagreement.map((item) => <li key={item}>{item}</li>)}</ul></article></div>
-              <div className="packet-options"><div className="panel-heading"><span>Genuine options</span><small>No default selection</small></div>{packet.options.map((option) => <label className={`packet-option ${selectedOptions.includes(option.option_id) ? "chosen" : ""}`} key={option.option_id}><input type="checkbox" checked={selectedOptions.includes(option.option_id)} onChange={() => toggleOption(option.option_id)} /><span className="option-check" aria-hidden="true" /><span><b>{option.label}</b><p>{option.description}</p><small>Tradeoffs: {option.tradeoffs.join(" · ")}</small><small>Uncertainty: {option.uncertainty.join(" · ")}</small><details><summary>Exact proposed object change</summary><p>{option.proposed_changes[0].text}</p><code>{option.proposed_changes[0].kind}</code></details></span></label>)}</div>
-              {packet.recommendation ? <aside className="non-authoritative"><b>Optional, non-authoritative recommendation</b><p>{packet.recommendation.rationale}</p></aside> : null}
-              <div className="human-checks"><label className="check-line"><input type="checkbox" checked={disagreementReviewed} onChange={(event) => setDisagreementReviewed(event.target.checked)} /> I reviewed where the readings materially disagree.</label><label className="check-line"><input type="checkbox" checked={mutationConfirmed} onChange={(event) => setMutationConfirmed(event.target.checked)} /> I understand the exact durable change I am authorizing.</label></div>
-              <label htmlFor="exact-human-text">Exact Human wording for combine or edit</label><textarea id="exact-human-text" className="text-area compact" value={exactText} onChange={(event) => setExactText(event.target.value)} placeholder="Required when combining or editing options…" />
-              <div className="packet-actions"><button className="plain-button accept" disabled={busy || selectedOptions.length !== 1 || !mutationReady} onClick={() => decide("ACCEPT_ONE")}>Accept one</button><button className="plain-button" disabled={busy || selectedOptions.length < 2 || !exactText.trim() || !mutationReady} onClick={() => decide("COMBINE")}>Combine selected</button><button className="plain-button" disabled={busy || selectedOptions.length < 1 || !exactText.trim() || !mutationReady} onClick={() => decide("EDIT")}>Accept Human edit</button><button className="plain-button" disabled={busy} onClick={() => decide("REJECT_ALL")}>Reject all</button><button className="plain-button" disabled={busy} onClick={() => decide("HOLD")}>Hold</button></div>
+              <header><p className="eyebrow"><span /> For your review—not yet part of the thought</p><h2>{packet.judgment_question}</h2><p>These readings lead in different directions. Nothing has been chosen for you.</p></header>
+              <div className="reading-grid">{packet.frame_readings.map((reading, index) => <article key={reading.frame_id}><span>Reading {index + 1}</span><h3>{reading.reading}</h3><dl><div><dt>What this reveals</dt><dd>{reading.reveals}</dd></div><div><dt>What it may obscure</dt><dd>{reading.may_obscure}</dd></div></dl><small>The steps behind this reading are recorded. You still decide whether it makes sense.</small></article>)}</div>
+              <div className="agreement-grid"><article><b>Where the readings agree</b><ul>{packet.frame_agreement.map((item) => <li key={item}>{item}</li>)}</ul></article><article className="disagreement"><b>Where they lead in different directions</b><ul>{packet.frame_disagreement.map((item) => <li key={item}>{item}</li>)}</ul></article></div>
+              <div className="packet-options"><div className="panel-heading"><span>Ways forward</span><small>Nothing chosen for you</small></div>{packet.options.map((option) => <label className={`packet-option ${selectedOptions.includes(option.option_id) ? "chosen" : ""}`} key={option.option_id}><input aria-label={option.label} type="checkbox" checked={selectedOptions.includes(option.option_id)} onChange={() => toggleOption(option.option_id)} /><span className="option-check" aria-hidden="true" /><span><b>{option.label}</b><p>{option.description}</p><small>Tradeoffs: {option.tradeoffs.join(" · ")}</small><small>Uncertainty: {option.uncertainty.join(" · ")}</small><details><summary>What would be added to the thought</summary><p>{option.proposed_changes[0].text}</p><code>{plainRecordLabel(option.proposed_changes[0].kind)}</code></details></span></label>)}</div>
+              {packet.recommendation ? <aside className="non-authoritative"><b>A suggestion, not a decision</b><p>{packet.recommendation.rationale}</p></aside> : null}
+              <div className="human-checks"><label className="check-line"><input type="checkbox" checked={disagreementReviewed} onChange={(event) => setDisagreementReviewed(event.target.checked)} /> I have looked at where these readings lead differently.</label><label className="check-line"><input type="checkbox" checked={mutationConfirmed} onChange={(event) => setMutationConfirmed(event.target.checked)} /> I understand the exact wording that will be saved.</label></div>
+              <label htmlFor="exact-human-text">Your exact wording for a combination or edit</label><textarea id="exact-human-text" className="text-area compact writing-field" value={exactText} onChange={(event) => setExactText(event.target.value)} placeholder="Write the exact words you want saved…" />
+              <div className="packet-actions"><button className="plain-button accept" disabled={busy || selectedOptions.length !== 1 || !mutationReady} onClick={() => decide("ACCEPT_ONE")}>Accept one</button><button className="plain-button" disabled={busy || selectedOptions.length < 2 || !exactText.trim() || !mutationReady} onClick={() => decide("COMBINE")}>Combine selected</button><button className="plain-button" disabled={busy || selectedOptions.length < 1 || !exactText.trim() || !mutationReady} onClick={() => decide("EDIT")}>Use my edited wording</button><button className="plain-button" disabled={busy} onClick={() => decide("REJECT_ALL")}>Reject all</button><button className="plain-button" disabled={busy} onClick={() => decide("HOLD")}>Hold</button></div>
               <label htmlFor="additional-reading">Request or add a missing reading</label><textarea id="additional-reading" className="text-area compact" value={missingReading} onChange={(event) => setMissingReading(event.target.value)} placeholder="What is absent from the current readings?" />
-              <div className="packet-actions secondary"><button className="plain-button" disabled={busy || !missingReading.trim()} onClick={() => decide("REQUEST_ANOTHER_FRAME")}>Request another lens</button><button className="plain-button" disabled={busy || !missingReading.trim()} onClick={() => decide("ADD_MISSING_READING")}>Add missing reading</button></div>
-              <aside className="proposal-meta packet-provenance"><h3>Provider & provenance</h3><dl><div><dt>Provider</dt><dd>{proposal.provider.provider}</dd></div><div><dt>Model</dt><dd>{proposal.provider.model}</dd></div><div><dt>Requests</dt><dd>{proposal.provider.request_count}</dd></div><div><dt>Cost</dt><dd>${proposal.provider.cost_usd.toFixed(4)}</dd></div><div><dt>Context</dt><dd title={proposal.context_package.package_hash}>{shortHash(proposal.context_package.package_hash)}</dd></div><div><dt>Request</dt><dd title={proposal.request.request_hash}>{shortHash(proposal.request.request_hash)}</dd></div><div><dt>Result</dt><dd title={proposal.result.result_hash}>{shortHash(proposal.result.result_hash)}</dd></div></dl><p>Exact procedures validated. Semantic adequacy and wisdom are not mechanically proven.</p></aside>
+              <div className="packet-actions secondary"><button className="plain-button" disabled={busy || !missingReading.trim()} onClick={() => decide("REQUEST_ANOTHER_FRAME")}>Ask for another viewpoint</button><button className="plain-button" disabled={busy || !missingReading.trim()} onClick={() => decide("ADD_MISSING_READING")}>Add missing reading</button></div>
+              <aside className="proposal-meta packet-provenance"><h3>How this proposal was made</h3><p>{proposalBoundary(proposal)}</p><dl><div><dt>Outside service</dt><dd>{isProviderFree(proposal) ? "None" : proposal.provider.provider}</dd></div><div><dt>Model</dt><dd>{proposal.provider.model === "none" ? "None" : proposal.provider.model}</dd></div><div><dt>AI calls</dt><dd>{proposal.provider.request_count}</dd></div><div><dt>Cost</dt><dd>${proposal.provider.cost_usd.toFixed(4)}</dd></div></dl><details><summary>Technical record</summary><dl><div><dt>Input record</dt><dd title={proposal.context_package.package_hash}>{shortHash(proposal.context_package.package_hash)}</dd></div><div><dt>Proposal request</dt><dd title={proposal.request.request_hash}>{shortHash(proposal.request.request_hash)}</dd></div><div><dt>Proposal record</dt><dd title={proposal.result.result_hash}>{shortHash(proposal.result.result_hash)}</dd></div></dl></details><p>The steps are recorded. You still decide whether the proposal makes sense.</p></aside>
             </section>
           ) : null}
 
-          {snapshot.decisions.length ? <section className="decision-ledger" aria-label="Human decision ledger"><div className="panel-heading"><span>Human decision ledger</span><small>unselected paths remain recoverable</small></div>{snapshot.decisions.map((record, index) => <div key={`${record.stage}-${index}`}><b>{record.decision?.action ?? record.stage}</b><span>{record.effect.mutated ? `+${record.effect.authorized_event_delta} authorized event` : "no object mutation"}</span></div>)}</section> : null}
-          <footer className="thought-boundary"><p>Local-only bridge · Credential value never crosses into the browser · Paid provider disabled · Product MVS {snapshot.bridge.product_mvs}</p><p>Resume restores relevance and state, never authority: {snapshot.session.resume_restores_authority ? "violated" : "preserved"}</p></footer>
+          {snapshot.decisions.length ? <section className="decision-ledger" aria-label="Your decisions"><div className="panel-heading"><span>Your decisions</span><small>Other paths stay available in the history</small></div>{snapshot.decisions.map((record, index) => <div key={`${record.stage}-${index}`}><b>{decisionLabel(record.decision?.action ?? record.stage)}</b><span>{record.effect.mutated ? `${record.effect.authorized_event_delta} approved ${record.effect.authorized_event_delta === 1 ? "change" : "changes"} saved` : "Nothing changed in the thought"}</span></div>)}</section> : null}
+
+          <footer className="thought-boundary"><p>{snapshot.bridge.paid_provider_enabled ? "Provider details are shown with each proposal" : "This test setup does not use an outside AI service"}</p><p>Reopening brings back the saved thought, not permission to change it.</p><details><summary>Technical status</summary><p>Current owner-pilot setup: localhost bridge · Provider credential remains server-side · Paid provider {snapshot.bridge.paid_provider_enabled ? "enabled" : "disabled"} · Product MVS {snapshot.bridge.product_mvs} · Authority restored by re-entry: {snapshot.session.resume_restores_authority ? "yes" : "no"}</p></details></footer>
         </div>
       )}
     </main>
