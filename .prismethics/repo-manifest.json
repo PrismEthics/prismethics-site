@@ -1,0 +1,49 @@
+{
+  "schema": "prismethics.repo_manifest.v1",
+  "repo_id": "PrismEthics/prismethics-site",
+  "repository_id": 1226652708,
+  "role": "ACTIVE_PUBLIC_PRODUCT_SITE_AND_DEVICE_LOCAL_WORKBENCH",
+  "proposed_role": null,
+  "role_status": "OWNER_ATTESTED",
+  "authority_scope": [
+    "public product shell",
+    "browser-local Workbench",
+    "site build and hosting configuration",
+    "site-owned public trust-boundary presentation"
+  ],
+  "explicit_non_authority": [
+    "runtime selection, admission, promotion, or supersession",
+    "provider credentials, live model execution, usage, or billing authority",
+    "accounts, cloud persistence, or production-security claims",
+    "Product MVS closure",
+    "pricing authority",
+    "archive or project-web authority",
+    "runtime facts described in site documentation as cross-repository producer truth"
+  ],
+  "canonical_entrypoints": [
+    ".prismethics/README.md",
+    ".prismethics/repo-manifest.json",
+    "README.md",
+    "docs/BUILDOUT_CURRENT_2026-08-14.md",
+    "app/page.tsx",
+    "app/workbench/page.tsx",
+    ".openai/hosting.json"
+  ],
+  "produces_contracts": [
+    "WORKBENCH_USER_INTERACTION"
+  ],
+  "consumes_contracts": [
+    "FUTURE_GOVERNED_RUNTIME_API"
+  ],
+  "observed_commit": "1a4080ea3b015f1783e566a27d3e33f2cce66a57",
+  "newer_unreconciled_commit": null,
+  "head_event_id": null,
+  "manifest_version": 1,
+  "verification": {
+    "observed_at": "2026-08-20T05:20:00Z",
+    "expires_at": "2026-11-18T05:20:00Z",
+    "source_observation_ref": "https://github.com/PrismEthics/prismethics-site/commit/1a4080ea3b015f1783e566a27d3e33f2cce66a57"
+  },
+  "projection_status": "OWNER_ATTESTED",
+  "owner_attested": true
+}
