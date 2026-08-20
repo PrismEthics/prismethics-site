@@ -1,0 +1,41 @@
+{
+  "schema": "prismethics.change_event.v1",
+  "event_id": "EVT-SITE-REPO-MANIFEST-V1-20260820",
+  "event_status": "COMMITTED",
+  "producer_repo": "PrismEthics/prismethics-site",
+  "object_id": "REPO-MANIFEST:PrismEthics/prismethics-site",
+  "predecessor_event_id": null,
+  "change_kind": "OWNER_ATTESTED_REPO_MANIFEST_V1_PROPOSAL_BRANCH",
+  "producer_commit": "3712a2950a57ba876490938eba278df45a728c66",
+  "changed_paths": [
+    ".prismethics/README.md",
+    ".prismethics/repo-manifest.json"
+  ],
+  "proof_effect": {
+    "schema_compatible": true,
+    "exact_remote_readback": true,
+    "manifest_blob_sha": "0f18a4a75e8ae563352712f019462f810614016b",
+    "manifest_sha256": "49eedde53cd1ffd44aa9fbf8b64f60fe468b0c9cf56776546d41e9f934304f5d"
+  },
+  "candidate_effect": {
+    "default_branch_truth": false,
+    "owner_attested_content": true,
+    "proposal_branch": "governed/repo-manifest-pilot-v0-1",
+    "runtime_connection_effect": false
+  },
+  "affected_consumers": [
+    "PrismEthics/PrismEthics-prismethics-system-archive"
+  ],
+  "failure_run_refs": [
+    "EVT-GH-ORG-MANIFEST-SELFREF-TRIGGER-001"
+  ],
+  "authority_boundary": {
+    "automatic_cross_repository_mutation": false,
+    "billing_or_pricing_authority": false,
+    "deployment_or_domain_status_inferred": false,
+    "product_mvs_closure": false,
+    "runtime_admission_selection_or_promotion": false,
+    "supersession": false
+  },
+  "occurred_at": "2026-08-20T05:22:00Z"
+}
