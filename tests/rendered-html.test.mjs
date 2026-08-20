@@ -32,20 +32,34 @@ test("server-renders the truthful public landing contract", async () => {
   assert.doesNotMatch(html, /codex-preview|SkeletonPreview|react-loading-skeleton/i);
 });
 
-test("keeps the Workbench boundary explicit in source", async () => {
+test("keeps the governed localhost Workbench boundary explicit in source", async () => {
   const [workbench, buildout, packageJson] = await Promise.all([
     readFile(new URL("../app/workbench/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../docs/BUILDOUT_CURRENT_2026-08-14.md", import.meta.url), "utf8"),
     readFile(new URL("../package.json", import.meta.url), "utf8"),
   ]);
 
-  assert.match(workbench, /window\.localStorage/);
-  assert.match(workbench, /No model receives this content/);
-  assert.match(workbench, /Model assistance and cloud persistence are not connected/);
-  assert.match(workbench, /Save Work Object/);
-  assert.match(workbench, /Close session/);
-  assert.match(workbench, /Reopen/);
-  assert.match(workbench, /Copy handoff/);
+  assert.match(workbench, /http:\/\/127\.0\.0\.1:8765\/api/);
+  assert.match(workbench, /Derived current attention/);
+  assert.match(workbench, /Propose with Writer Core/);
+  assert.match(workbench, /Before these lenses shape the review/);
+  assert.match(workbench, /None is selected or authoritative/);
+  assert.match(workbench, /What this reveals/);
+  assert.match(workbench, /What it may obscure/);
+  assert.match(workbench, /Where they materially disagree/);
+  assert.match(workbench, /Accept one/);
+  assert.match(workbench, /Combine selected/);
+  assert.match(workbench, /Accept Human edit/);
+  assert.match(workbench, /Reject all/);
+  assert.match(workbench, /Request another lens/);
+  assert.match(workbench, /Add missing reading/);
+  assert.match(workbench, /Hold/);
+  assert.match(workbench, /Close with continuity/);
+  assert.match(workbench, /Provider & provenance/);
+  assert.match(workbench, /Credential value never crosses into the browser/);
+  assert.match(workbench, /Resume restores relevance and state, never authority/);
+  assert.match(workbench, /Product MVS/);
+  assert.doesNotMatch(workbench, /window\.localStorage/);
   assert.match(buildout, /Human Authority accepted the evidence/);
   assert.match(buildout, /no Product MVS acceptance claim/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
