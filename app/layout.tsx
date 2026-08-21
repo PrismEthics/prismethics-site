@@ -4,13 +4,13 @@ import { headers } from "next/headers";
 import "./globals.css";
 
 const display = Cormorant_Garamond({
-  variable: "--font-display",
+  variable: "--font-prism-display",
   subsets: ["latin"],
   weight: ["400", "500", "600"],
 });
 
 const sans = Manrope({
-  variable: "--font-sans",
+  variable: "--font-prism-sans",
   subsets: ["latin"],
 });
 

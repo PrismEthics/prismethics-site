@@ -1,5 +1,7 @@
 # PrismEthics Product Buildout — Current State
 
+> Historical buildout projection. It was superseded as the current site planning surface on 2026-08-20 by [BUILDOUT_CURRENT_2026-08-20.md](BUILDOUT_CURRENT_2026-08-20.md). Its implementation claims remain evidence from that date and do not override current structured authority. In particular, this file's statements that a live-provider proof was mechanically closed do not describe the current Product MVS disposition: `MODEL_RUNTIME_LIVE_PROVIDER_PROOF_v0_1` is currently open. Do not cite this file as current runtime admission, site conformance, deployment, or Product MVS closure evidence.
+
 Date: 2026-08-14
 Purpose: the smallest accurate map from the admitted runtime proof to a public, usable product surface.
 

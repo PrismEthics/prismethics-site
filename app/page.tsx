@@ -3,18 +3,18 @@ import Link from "next/link";
 const steps = [
   {
     number: "01",
-    title: "Name the real work",
-    body: "Start with the question, decision, draft, or difficult situation that actually matters.",
+    title: "Start in your own words",
+    body: "Bring the question, decision, draft, research, or difficult situation as you would to a thoughtful conversation.",
   },
   {
     number: "02",
-    title: "Make the structure visible",
-    body: "Separate what is known, what is uncertain, which options remain, and where judgment is needed.",
+    title: "Let the work open up",
+    body: "The structure works underneath the exchange, bringing forward distinct readings when they genuinely change what you can see.",
   },
   {
     number: "03",
-    title: "Carry it forward",
-    body: "Close with a clear continuity note so the next session begins from earned ground—not from scratch.",
+    title: "Make and carry forward",
+    body: "Develop the note, draft, research, plan, or design through conversation, then return from the ground you already earned.",
   },
 ];
 
@@ -40,16 +40,18 @@ export default function Home() {
           <p className="eyebrow"><span /> A workbench for consequential thinking</p>
           <h1>Thinking that<br />carries <em>forward.</em></h1>
           <p className="hero-lede">
-            Turn a difficult question into a visible line of reasoning, preserve what you learned,
-            and return without losing the thread.
+            Work through a difficult question as a conversation while the reasoning, research,
+            and things you make take shape underneath—and carry forward without losing the thread.
           </p>
           <div className="hero-actions">
             <Link className="button button-primary" href="/workbench">
-              Begin a Work Object <span aria-hidden="true">↗</span>
+              Begin a conversation <span aria-hidden="true">↗</span>
             </Link>
             <a className="text-link" href="#method">See the method <span aria-hidden="true">↓</span></a>
           </div>
-          <p className="preview-note">Private on this device in the current preview. No account required.</p>
+          <p className="preview-note">
+            Pilot candidate: submitted turns and bounded recent context go to the configured provider; a device-local copy supports re-entry. No account or cloud sync yet.
+          </p>
         </div>
 
         <div className="hero-object" aria-label="An abstract prism representing preserved perspective">
@@ -118,13 +120,14 @@ export default function Home() {
         </div>
         <div className="trust-copy">
           <p>
-            This preview is a useful, device-local Workbench. It does not claim cloud sync,
-            accounts, or live model assistance. Those arrive only when the governed runtime is
-            connected and its evidence is ready.
+            This pilot candidate connects model assistance through a server-side provider route when
+            configured. A bounded recent context package is resubmitted with each turn, while a
+            device-local copy supports re-entry. This slice does not claim accounts, cloud sync, or
+            deployed-provider proof.
           </p>
           <div className="trust-facts">
-            <span><b>Now</b>Local structured work</span>
-            <span><b>Next</b>Governed model assistance</span>
+            <span><b>Now</b>Conversation-first candidate</span>
+            <span><b>Boundary</b>Local transcript, submitted turns</span>
             <span><b>Always</b>You can inspect and revise</span>
           </div>
         </div>
