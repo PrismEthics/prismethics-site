@@ -1,0 +1,45 @@
+{
+  "schema": "prismethics.change_event.v1",
+  "event_id": "EVT-SITE-CONVERSATIONAL-WORKBENCH-ARCHITECTURE-V0-1-20260821",
+  "event_status": "COMMITTED",
+  "producer_repo": "PrismEthics/prismethics-site",
+  "object_id": "CONVERSATIONAL_WORKBENCH_SITE_ARCHITECTURE_v0_1",
+  "predecessor_event_id": null,
+  "change_kind": "SCHEMA_REPAIR_AND_VISIBLE_EXPERIENCE_BOUNDARY_PROPAGATION_CANDIDATE",
+  "producer_commit": "e654c03056d27102d991d809759374f96c227706",
+  "changed_paths": [
+    ".prismethics/README.md",
+    ".prismethics/repo-manifest.json"
+  ],
+  "proof_effect": {
+    "manifest_schema": "PROJECT_WEB_REPO_MANIFEST_V1_CONFORMANT",
+    "experience_contract": "EXISTING_DRAFT_PRESERVED",
+    "implementation_or_test_effect": "NONE_IN_THIS_COMMIT",
+    "product_mvs": "OPEN"
+  },
+  "candidate_effect": {
+    "visible_owner": "PrismEthics/prismethics-site",
+    "experience": "STRUCTURED_INSIDE_CONVERSATIONAL_OUTSIDE",
+    "runtime_boundary": "CANDIDATE_UNBOUND",
+    "default_branch_truth": false,
+    "promotion_authorized": false
+  },
+  "affected_consumers": [
+    "PrismEthics/PrismEthics-prismethics-system-archive",
+    "PrismEthics/prismethics-runtime"
+  ],
+  "failure_run_refs": [
+    "https://github.com/PrismEthics/prismethics-site/pull/3"
+  ],
+  "authority_boundary": {
+    "authorized": "OWNER_ATTESTED_DRAFT_PROPAGATION_ONLY",
+    "forbidden": [
+      "runtime selection or dependency rebind",
+      "provider spend or another paid call",
+      "deployment",
+      "Product MVS closure",
+      "canonical promotion"
+    ]
+  },
+  "occurred_at": "2026-08-21T01:22:00Z"
+}
