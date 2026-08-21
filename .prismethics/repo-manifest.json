@@ -2,43 +2,39 @@
   "schema": "prismethics.repo_manifest.v1",
   "repo_id": "PrismEthics/prismethics-site",
   "repository_id": 1226652708,
-  "role": "ACTIVE_PUBLIC_PRODUCT_SITE_AND_WORKBENCH_SOURCE",
+  "role": "ACTIVE_PUBLIC_PRODUCT_SITE_AND_DEVICE_LOCAL_WORKBENCH",
   "proposed_role": "CONVERSATIONAL_WORKBENCH_PILOT_CANDIDATE",
-  "role_status": "OWNER_ATTESTED_WITH_UNPROMOTED_CANDIDATE",
+  "role_status": "OWNER_ATTESTED",
   "authority_scope": [
     "public product shell",
     "Conversational Workbench pilot experience contract and source",
-    "site-side candidate interface and runtime boundary",
+    "site-side candidate SessionRuntime-shaped turn seam",
     "stateless site-side model provider adapter",
     "browser-local recent-work presentation",
     "site build and hosting configuration",
     "site-owned public trust-boundary presentation"
   ],
   "explicit_non_authority": [
-    "runtime selection, admission, promotion, or supersession",
-    "provider credential issuance, provider billing authority, or paid-proof authorization",
-    "accounts, authentication, tenant isolation, cloud persistence, or canonical Work Object storage",
+    "runtime selection, admission, dependency rebind, promotion, or supersession",
+    "provider credential issuance, billing authority, or paid-proof authorization",
+    "authentication, tenant isolation, cloud persistence, or canonical Work Object storage",
     "production deployment, security, privacy, retention, or deletion claims",
     "provider neutrality, automatic routing, or cross-model continuity claims",
-    "exact Frame Library execution or frame receipts",
+    "exact Frame Library execution or governed frame receipts",
     "governed research-owner execution",
     "full Integrated Runtime conformance",
-    "Product MVS closure",
-    "canonical promotion",
-    "pricing authority",
-    "archive or project-web authority",
-    "runtime facts described in site documentation as cross-repository producer truth"
+    "Product MVS closure or canonical promotion",
+    "archive or Project Web authority"
   ],
   "canonical_entrypoints": [
     ".prismethics/README.md",
     ".prismethics/repo-manifest.json",
+    ".prismethics/change-events/EVT-SITE-CONVERSATIONAL-WORKBENCH-ARCHITECTURE-V0-1-20260821.json",
     "README.md",
     "docs/CONVERSATIONAL_WORKBENCH_PILOT_CONTRACT_v0_1.md",
     "docs/BUILDOUT_CURRENT_2026-08-20.md",
-    "app/page.tsx",
     "app/workbench/page.tsx",
-    "worker/index.ts",
-    ".openai/hosting.json"
+    "worker/index.ts"
   ],
   "produces_contracts": [
     "CONVERSATIONAL_WORKBENCH_PILOT_CONTRACT_v0_1",
@@ -47,74 +43,24 @@
     "WORKBENCH_SITE_RUNTIME_BOUNDARY_CANDIDATE"
   ],
   "consumes_contracts": [
-    "SERVER_SIDE_MODEL_PROVIDER_ENVIRONMENT",
+    "CONVERSATIONAL_WORKBENCH_RUNTIME_BOUNDARY_CANDIDATE_v0_1",
     "PRISMETHICS_MASTER_PRODUCT_VISION_AND_BUILDOUT_STATE_2026-08-09",
     "BUILDOUT_STAGE_ARCHITECTURE_v0_1",
     "SESSION_RUNTIME_CONTRACT_v0_1",
     "FRAME_RUNTIME_PORT_CONTRACT_v0_1",
     "MODEL_RUNTIME_PORT_CONTRACT_v0_1",
     "IR-REBIND-SRF984-SKILL23-V051",
-    "FUTURE_GOVERNED_RUNTIME_API",
     "MODEL_RUNTIME_LIVE_PROVIDER_PROOF_v0_1"
   ],
-  "preserved_architecture": {
-    "status": "VISION_AND_SEAM_PRESERVATION_ONLY_UNPROMOTED",
-    "initial_shape": [
-      "SessionRuntime",
-      "FrameRuntimePort",
-      "ModelRuntimePort",
-      "WorkObjectStore",
-      "ProjectionEngine",
-      "Authorization"
-    ],
-    "integrated_runtime_evidence": {
-      "binding_id": "IR-REBIND-SRF984-SKILL23-V051",
-      "disposition": "ADMITTED_CROSS_REPOSITORY_BINDING_NOT_SITE_CONFORMANCE_OR_PRODUCT_PROMOTION",
-      "buildout_binding_constraint": "LOCKED_TO_BUILDOUT_PLANNER_v1_52; STANDALONE_BUILDOUT_PLANNER_v1_53_MUST_NOT_BE_INJECTED_WITHOUT_SEPARATELY_REVIEWED_REBIND",
-      "preserved_properties": [
-        "event-derived state",
-        "permission-filtered ContextPackages",
-        "two-phase conversational checkpoint and close",
-        "exact-owner dispatch",
-        "provenance-bearing transitions",
-        "Quiet Intelligence",
-        "hard Human Authority stops"
-      ]
-    },
-    "site_slice": [
-      "conversational interface",
-      "candidate site-side runtime boundary",
-      "stateless provider adapter using product-owned bounded context",
-      "device-local recent-work convenience"
-    ],
-    "explicit_holds": [
-      "exact Frame Library execution",
-      "governed research-owner execution; current web search is provider-assisted only",
-      "canonical Work Object persistence and authorization",
-      "full Integrated Runtime conformance",
-      "paid or governed live-provider proof",
-      "authentication",
-      "deployment"
-    ]
-  },
-  "architecture_evidence_refs": [
-    "Buildout Planner v1.53:state/build_state.json#D-89",
-    "Buildout Planner v1.53:references/current-trunk/BUILDOUT_STAGE_ARCHITECTURE_v0_1.md",
-    "Buildout Planner v1.53:references/current-trunk/SESSION_RUNTIME_CONTRACT_v0_1.md",
-    "Buildout Planner v1.53:references/current-trunk/FRAME_RUNTIME_PORT_CONTRACT_v0_1.md",
-    "Buildout Planner v1.53:references/current-trunk/MODEL_RUNTIME_PORT_CONTRACT_v0_1.md",
-    "PrismEthics host profile:CURRENT/project-kernel/03_SKILL_RUNTIME_REGISTRY.json#binding_constraints",
-    "PrismEthics Runtime:runtime/candidates/ir-rebind-srf984-skill23-v051"
-  ],
-  "observed_commit": "cc4ab7fc81e50a84f0bb9752d31b7f80755b76b4",
+  "observed_commit": "a38f0d47867109cb793e9179443118c31fb75db3",
   "newer_unreconciled_commit": null,
-  "head_event_id": null,
-  "manifest_version": 3,
+  "head_event_id": "EVT-SITE-CONVERSATIONAL-WORKBENCH-ARCHITECTURE-V0-1-20260821",
+  "manifest_version": 2,
   "verification": {
-    "observed_at": "2026-08-20T18:55:51-05:00",
-    "expires_at": "2026-11-18T17:55:51-06:00",
-    "source_observation_ref": "https://github.com/PrismEthics/prismethics-site/commit/cc4ab7fc81e50a84f0bb9752d31b7f80755b76b4"
+    "observed_at": "2026-08-21T01:15:00Z",
+    "expires_at": "2026-11-19T01:15:00Z",
+    "source_observation_ref": "https://github.com/PrismEthics/prismethics-site/commit/a38f0d47867109cb793e9179443118c31fb75db3"
   },
-  "projection_status": "OWNER_ATTESTED_UNPROMOTED_CANDIDATE",
+  "projection_status": "OWNER_ATTESTED",
   "owner_attested": true
 }
